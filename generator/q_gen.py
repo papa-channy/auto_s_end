@@ -1,81 +1,43 @@
-from scripts.base_import import add_root_path
-add_root_path()
-from LLM.llm_selector import call_llm
+# 📁 generator/q_gen.py
 
 import os
-import json
-from tools.paths import (
-    NEW_Q_PDS_PATH, NEW_Q_SQL_PATH, NEW_Q_VIZ_PATH,
-    P_PDS_PATH, P_SQL_PATH, P_VIZ_PATH
-)
-# from LLM.llama3_groq import call_llm  # 현재 Groq 전용
-
-TOOL_PATH_MAP = {
-    "pds": {
-        "prompt": P_PDS_PATH,
-        "save": NEW_Q_PDS_PATH
-    },
-    "sql": {
-        "prompt": P_SQL_PATH,
-        "save": NEW_Q_SQL_PATH
-    },
-    "viz": {
-        "prompt": P_VIZ_PATH,
-        "save": NEW_Q_VIZ_PATH
-    }
-}
+from tools.paths import PROMPT_DIR, DATA_DIR
+from LLM.llm_selector import call_llm  # 자유형 문제 생성용
+from generator.q_post_format import format_questions  # 2차 호출용 (포맷 변환 함수)
+from generator.q_gen_utils import reset_prompt_file  # 프롬프트 초기화 함수
 
 def generate_all_questions(dataset_list, tool_list, difficulty_map, llm_name, count):
-    """
-    도구별 프롬프트를 LLM에 넘겨 문제 생성, new_q_{tool}.txt에 저장
-    """
     for tool in tool_list:
-        paths = TOOL_PATH_MAP.get(tool)
-        if not paths:
-            print(f"❗ 지원하지 않는 도구: {tool}")
+        prompt_path = os.path.join(PROMPT_DIR, f"p_{tool}.txt")
+        output_path = os.path.join(DATA_DIR, f"new_q_{tool}.txt")
+
+        # 1️⃣ 자유 프롬프트 불러오기
+        if not os.path.exists(prompt_path):
+            print(f"❗ {tool} → 프롬프트 파일 없음: {prompt_path}")
             continue
 
-        prompt_path = paths["prompt"]
-        save_path = paths["save"]
-
-        # 🧠 프롬프트 템플릿 로딩
         with open(prompt_path, "r", encoding="utf-8") as f:
-            base_prompt = f.read()
+            prompt = f.read().strip()
 
-        all_q = []
+        if not prompt:
+            print(f"❗ {tool} 프롬프트 내용 없음, 건너뜀")
+            continue
 
-        for dataset in dataset_list:
-            for difficulty in difficulty_map[tool]:
-                filled_prompt = base_prompt.format(
-                    dataset=dataset,
-                    difficulty_list=" → ".join(difficulty_map[tool]),
-                    count=count
-                )
+        print(f"🧠 [{tool}] 1차 문제 생성 중...")
+        raw_response = call_llm(prompt, llm_name, temperature=1.0)
+        print(f"🔍 [{tool}] 1차 응답 완료 → 포맷 변환 중...")
 
-                # ✨ LLM 호출
-                response = call_llm(filled_prompt, llm_name, temperature=0.6)
+        # 2️⃣ 포맷 변환 (ex_format_pds.txt 참고)
+        formatted = format_questions(tool, dataset_list[0], difficulty_map[tool], raw_response, llm_name)
+        if not formatted:
+            print(f"❌ [{tool}] 포맷 변환 실패")
+            continue
 
-                lines = response.strip().split("\n")
+        with open(output_path, "w", encoding="utf-8") as f:
+            for line in formatted:
+                f.write(line + "\n")
 
-                for line in lines:
-                    if "|" not in line or line.count("|") != 4:
-                        continue  # ⚠️ 정확한 형식이 아닌 경우 제외
+        print(f"✅ [{tool}] {len(formatted)}문제 저장 완료 → {os.path.basename(output_path)}")
 
-                    try:
-                        idx, level, data, category, question = line.split("|", 4)
-                        all_q.append({
-                            "tool": tool,
-                            "dataset": data.strip(),
-                            "difficulty": level.strip(),
-                            "category": category.strip(),
-                            "question": question.strip()
-                        })
-                    except ValueError:
-                        continue
-
-        # 💾 저장
-        with open(save_path, "w", encoding="utf-8") as f:
-            for q in all_q:
-                f.write(json.dumps(q, ensure_ascii=False) + "\n")
-
-        print(f"✅ [{tool}] {len(all_q)}문제 저장 완료")
+        # 3️⃣ 프롬프트 초기화
+        reset_prompt_file(tool)

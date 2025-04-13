@@ -7,3 +7,7 @@
 {"tool": "pds", "dataset": "tips", "difficulty": "중", "category": "pds/데이터 전처리", "question": "결측치가 있는 행을 제거하세요."}
 {"tool": "pds", "dataset": "titanic", "difficulty": "상", "category": "pds/요약 통계", "question": "성별별 생존율을 구하세요."}
 {"tool": "pds", "dataset": "titanic", "difficulty": "최상", "category": "pds/시각화", "question": "이동 수단별 생존율을 막대 그래프로 나타내세요."}
+1|중|mpg|pds/데이터 전처리|mpg 데이터셋에서 열 이름 'year'의 형식이 숫자가 아닌 행을 찾아 제거하세요.
+2|상|mpg|pds/시각화|mpg 데이터셋에서 'cylinders' 열과 'horsespower' 열 간의 관계를 웹 비례선 그래프로 나타내세요. 추가적으로, 각 열에 대한 평균 값을 표시하세요.
+1|중|penguins|pds/데이터 분석|덴마크 originals 열에서 최빈값이 있는 색상의 개수를 구하세요.
+2|상|penguins|pds/시각화|'bill length' 열과 'bill depth' 열 간의 상관관계를 시각화하여 나타내세요. 추가적으로, 각 열의 분산과 공분산을 계산하세요.

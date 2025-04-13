@@ -1,3 +1,3 @@
-{"tool": "sql", "dataset": "tips", "difficulty": "중", "category": "요약 통계", "question": "성별별 생존율을 구하세요."}
-{"tool": "sql", "dataset": "칼럼 제거", "difficulty": "하", "category": "passenger/기초 문법", "question": "성별을 제외한 열을 출력하세요."}
-{"tool": "sql", "dataset": "묵시적 형 변환", "difficulty": "중하", "category": "passenger/묵시적 형 변환", "question": "성별을 숫자로 변환하여 출력하세요."}
+1|하|mpg|SQL|mpg 데이터셋에서 자동차 모델을 제외한 열만 출력하세요.
+2|중|mpg|SQL|mpg 데이터셋에서 가장 높은 연비를 가진 자동차 모델은 무엇입니까?該車車의 연비를 구하세요.
+1|하|penguins|SQL|인른의 몸무게가 5000g 이하인

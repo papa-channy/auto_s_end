@@ -17,6 +17,7 @@ from generator.file_gen.py_gen import generate_py_files
 from tools.archiver import archive_all_questions
 from tools.log_reporter import save_log_report
 from notion.notion_uploader import NotionUploader
+from tools.clean_cache import clean_all_cache
 
 # 1️⃣ 설정 로딩
 with open(SETTING_JSON_PATH, "r", encoding="utf-8") as f:
@@ -68,3 +69,6 @@ archive_all_questions(tool_list)
 
 # 8️⃣ 로그 저장
 save_log_report()
+
+# 9️⃣ 캐시 정리
+clean_all_cache()
